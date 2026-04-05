@@ -27,7 +27,7 @@ router.post('/register', async (req, res) => {
 
     // Create user
        const userRole = role || 'user';
-    const userStatus = (userRole === 'driver' || userRole === 'admin') ? 'Pending' : 'Active';
+    const userStatus = 'Pending';
     const user = await User.create({
       id: `USR${Date.now()}`, // Simple ID generation
       name,
