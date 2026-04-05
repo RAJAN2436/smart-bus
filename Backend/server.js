@@ -90,6 +90,26 @@ const seedDatabase = async () => {
     console.error('Error seeding database:', error);
   }
 };
+const seedAdmin = async () => {
+  try {
+    const adminCount = await User.countDocuments({ role: 'admin' });
+    if (adminCount === 0) {
+      console.log('No admin found, seeding default administrator...');
+      await User.create({
+        id: `ADM${Date.now()}`,
+        name: 'Super Admin',
+        email: 'admin@smartbus.com',
+        password: 'admin123',
+        role: 'admin',
+        status: 'Active',
+        date: new Date().toISOString().split('T')[0]
+      });
+      console.log('Default administrator created: admin@smartbus.com / admin123');
+    }
+  } catch (error) {
+    console.error('Error seeding default admin:', error);
+  }
+};
 
 // MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://smartbus:Rajan123@cluster0.vd2ruyc.mongodb.net/?appName=Cluster0';
@@ -97,6 +117,7 @@ mongoose.connect(MONGO_URI)
   .then(() => {
     console.log(`Connected to MongoDB at ${MONGO_URI}`);
     seedDatabase();
+    seedAdmin();
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on http://0.0.0.0:${PORT}`);
     });
