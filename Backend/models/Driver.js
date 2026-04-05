@@ -3,9 +3,9 @@ import mongoose from 'mongoose';
 const driverSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
-  phone: { type: String, required: true },
-  license: { type: String, required: true },
-  bus: { type: String, required: true },
+  phone: { type: String, required: false },
+  license: { type: String, required: false },
+  bus: { type: String, required: false },
   status: { type: String, default: 'Online' },
   internalId: { type: Number, default: () => Date.now() }
 }, { timestamps: true });
