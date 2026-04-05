@@ -356,8 +356,19 @@ function AdminDashboard() {
                                 : (type === 'bus' ? api.addBus : type === 'driver' ? api.addDriver : type === 'route' ? api.addRoute : type === 'user' ? api.addUser : type === 'trip' ? api.addTrip : api.addSchedule);
 
                             setLoading(true);
-                            const action = editingItem ? apiCall(editingItem.data.id, data) : apiCall(data);
-
+                            let action;
+                            if (editingItem?.isApproval) {
+                                if (type === 'driver') {
+                                    // Sequence: Update user status THEN create driver entry
+                                    action = api.editUser(editingItem.data.id, { status: 'Active' })
+                                        .then(() => api.addDriver(data));
+                                } else {
+                                    // Admin approval or others
+                                    action = api.editUser(editingItem.data.id, { status: 'Active' });
+                                }
+                            } else {
+                                action = editingItem ? apiCall(editingItem.data.id, data) : apiCall(data);
+                            }
                             action.then(() => {
                                 setShowAddBus(false); setShowAddDriver(false); setShowAddRoute(false);
                                 setShowAddUser(false); setShowAddTrip(false); setShowAddSchedule(false);
@@ -384,7 +395,7 @@ function AdminDashboard() {
                                 </div>
                                 <div className={`space-y-3 ${showAddRoute || editingItem?.type === 'route' ? 'col-span-1' : 'col-span-2'}`}>
                                     <label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2 italic">Operational Status</label>
-                                    <select name="status" defaultValue={editingItem?.data?.status} className="glass-input w-full appearance-none">
+                                   <select name="status" defaultValue={editingItem?.isApproval ? 'Active' : editingItem?.data?.status} className="glass-input w-full appearance-none">
                                         <option>Pending</option>
                                         <option>Active</option>
                                         <option>Standby</option>
@@ -1567,7 +1578,7 @@ function DriverApprovalManagement({ drivers, setEditingItem, loadData, setConfir
                         </div>
                         <div className="flex flex-col gap-4">
                             <button
-                                onClick={() => setEditingItem({ type: 'driver', data: d })}
+                                onClick={() => setEditingItem({ type: 'driver', data: d, isApproval: true })}
                                 className="px-10 py-5 bg-red-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] italic hover:scale-105 active:scale-95 transition-all shadow-xl shadow-red-600/20"
                             >
                                 Review & Authorize
