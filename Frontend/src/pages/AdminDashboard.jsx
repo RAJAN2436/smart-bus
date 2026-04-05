@@ -155,7 +155,6 @@ function AdminDashboard() {
                 const pendingPool = [
                     ...drivers.filter(d => (d.status?.toLowerCase() !== 'active')),
                     ...users.filter(u => 
-                        u.role?.toLowerCase() !== 'user' && 
                         (u.status?.toLowerCase() !== 'active') && 
                         !drivers.some(d => d.id === u.id || d.email === u.email)
                     )
@@ -1532,7 +1531,7 @@ function DriverApprovalManagement({ drivers, setEditingItem, loadData, setConfir
             <div className="space-y-12">
                 <header>
                     <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none text-gray-500">Personnel <span className="text-red-600">Validation</span></h2>
-                    <p className="text-gray-500 text-sm mt-3 font-black uppercase tracking-[0.3em] italic">Vetting incoming pilot credentials</p>
+                    <p className="text-gray-500 text-sm mt-3 font-black uppercase tracking-[0.3em] italic">Vetting incoming personnel registrations</p>
                 </header>
                 <div className="glass-card p-20 text-center space-y-8">
                     <ShieldCheck size={64} className="text-gray-800 mx-auto" />
@@ -1546,7 +1545,7 @@ function DriverApprovalManagement({ drivers, setEditingItem, loadData, setConfir
         <div className="space-y-12">
             <header>
                     <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none text-gray-500">Personnel <span className="text-red-600">Validation</span></h2>
-                    <p className="text-gray-500 text-sm mt-3 font-black uppercase tracking-[0.3em] italic">Vetting incoming pilot registrations</p>
+                    <p className="text-gray-500 text-sm mt-3 font-black uppercase tracking-[0.3em] italic">Vetting incoming registrations</p>
             </header>
 
             <div className="grid grid-cols-1 gap-8">
@@ -1562,15 +1561,15 @@ function DriverApprovalManagement({ drivers, setEditingItem, loadData, setConfir
                                 </div>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-10">
                                     <div className="space-y-1">
-                                        <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Pilot Reference</p>
+                                        <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Personnel Reference</p>
                                         <p className="text-xs font-black text-white italic tabular-nums">{d.id}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Digital Address</p>
+                                       <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Digital Address</p>
                                         <p className="text-xs font-black text-white italic tracking-tighter lowercase">{d.email}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Pre-auth Timestamp</p>
+                                       <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Pre-auth Timestamp</p>
                                         <p className="text-xs font-black text-white italic tabular-nums">{new Date().toLocaleDateString()}</p>
                                     </div>
                                 </div>
@@ -1578,7 +1577,7 @@ function DriverApprovalManagement({ drivers, setEditingItem, loadData, setConfir
                         </div>
                         <div className="flex flex-col gap-4">
                             <button
-                                onClick={() => setEditingItem({ type: 'driver', data: d, isApproval: true })}
+                               onClick={() => setEditingItem({ type: d.role || 'user', data: d, isApproval: true })}
                                 className="px-10 py-5 bg-red-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] italic hover:scale-105 active:scale-95 transition-all shadow-xl shadow-red-600/20"
                             >
                                 Review & Authorize
@@ -1588,7 +1587,7 @@ function DriverApprovalManagement({ drivers, setEditingItem, loadData, setConfir
                                     type: 'Pending Driver Registration',
                                     id: d.id,
                                     name: d.name,
-                                    action: () => api.deleteDriver(d.id)
+                                    action: () => api.deleteUser(d.id)
                                 })}
                                 className="px-10 py-5 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] italic transition-all text-gray-500"
                             >
