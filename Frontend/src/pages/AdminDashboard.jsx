@@ -149,7 +149,8 @@ function AdminDashboard() {
         switch (activeModule) {
             case "stats": return <StatisticsView stats={stats} drivers={[...drivers, ...users.filter(u => u.role === 'driver' && !drivers.some(d => d.id === u.id))]} />
             case "fleet": return <FleetManagement fleet={fleet} setShowAddBus={setShowAddBus} setEditingItem={setEditingItem} loadData={loadData} setConfirmDelete={setConfirmDelete} />
-    case "driver": return <DriverManagement drivers={drivers} setShowAddDriver={setShowAddDriver} setEditingItem={setEditingItem} loadData={loadData} setConfirmDelete={setConfirmDelete} />
+            case "driver": return <DriverManagement drivers={drivers} setShowAddDriver={setShowAddDriver} setEditingItem={setEditingItem} loadData={loadData} setConfirmDelete={setConfirmDelete} />
+            case "user": return <UserManagement users={users} setShowAddUser={setShowAddUser} setEditingItem={setEditingItem} loadData={loadData} setConfirmDelete={setConfirmDelete} />
             case "route":
                 if (selectedRoute) {
                     return <RouteIntelligenceView
@@ -344,7 +345,9 @@ function AdminDashboard() {
                                 : (type === 'bus' ? api.addBus : type === 'driver' ? api.addDriver : type === 'route' ? api.addRoute : type === 'user' ? api.addUser : type === 'trip' ? api.addTrip : api.addSchedule);
 
                             setLoading(true);
-                           const action = editingItem ? apiCall(editingItem.data.id, data) : apiCall(data);
+                            
+                            const action = editingItem ? apiCall(editingItem.data.id, data) : apiCall(data);
+
                             action.then(() => {
                                 setShowAddBus(false); setShowAddDriver(false); setShowAddRoute(false);
                                 setShowAddUser(false); setShowAddTrip(false); setShowAddSchedule(false);
@@ -371,7 +374,7 @@ function AdminDashboard() {
                                 </div>
                                 <div className={`space-y-3 ${showAddRoute || editingItem?.type === 'route' ? 'col-span-1' : 'col-span-2'}`}>
                                     <label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2 italic">Operational Status</label>
-                                   <select name="status" defaultValue={editingItem?.isApproval ? 'Active' : editingItem?.data?.status} className="glass-input w-full appearance-none">
+                                    <select name="status" defaultValue={editingItem?.isApproval ? 'Active' : editingItem?.data?.status} className="glass-input w-full appearance-none">
                                         <option>Pending</option>
                                         <option>Active</option>
                                         <option>Standby</option>
@@ -418,7 +421,7 @@ function AdminDashboard() {
                                         </div>
                                         <div className="space-y-3 col-span-2">
                                             <label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2 italic">Assigned Bus (Registration Number)</label>
-                                            <select name="bus" defaultValue={editingItem?.data?.bus} className="glass-input w-full appearance-none" required={showAddDriver || editingItem?.type === 'driver'}>
+                                            <select name="bus" defaultValue={editingItem?.data?.bus} className="glass-input w-full appearance-none">
                                                 <option value="">-- UNASSIGNED --</option>
                                                 {fleet.map(b => (
                                                     <option key={b.id} value={b.id}>{b.id} ({b.name})</option>
@@ -1500,6 +1503,7 @@ function IssueManagement() {
         </div>
     )
 }
+
 
 
 function AnalyticsReports() {
