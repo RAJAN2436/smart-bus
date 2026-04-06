@@ -28,17 +28,7 @@ function LoginForm() {
 
         localStorage.setItem("user", JSON.stringify(data.user))
 
-        // Check for approval status (treat missing status as Pending for non-users)
-        const isApproved = data.user.status === 'Active';
-        if (data.user.role !== 'user' && !isApproved) {
-          setError("CREDENTIALS PENDING: Awaiting Administrative Authorization.");
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setLoading(false);
-          return;
-        }
-
-        // Redirect based on role with safe fallback
+       // Redirection based on role with safe fallback
         const role = data.user.role || "user";
         if (role === "admin") {
           navigate("/admin")
