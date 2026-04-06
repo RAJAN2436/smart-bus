@@ -25,18 +25,18 @@ function RegisterForm() {
     try {
       const data = await registerUser(formData)
       if (data.token) {
-        // Security Check: If driver/admin, block auto-login and require vetting
-        if (data.user?.role !== 'user') {
-          setError("REGISTRATION SUCCESSFUL: Awaiting Administrative Authorization before first access.");
-          setLoading(false);
-          return;
-        }
-
         localStorage.setItem("token", data.token)
         localStorage.setItem("user", JSON.stringify(data.user))
+        // Navigate based on role with safe fallback
+        const role = data.user.role || "user";
+        if (role === "admin") {
+          navigate("/admin")
+        } else if (role === "driver") {
+          navigate("/driver")
+        } else {
+          navigate("/user")
+        }
         
-        // Navigate based on role (standard users only here)
-        navigate("/user")
       } else {
         setError(data.error || "Registration failed")
       }
