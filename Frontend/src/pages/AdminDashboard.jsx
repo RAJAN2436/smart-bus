@@ -124,7 +124,6 @@ function AdminDashboard() {
         { id: "stats", title: "Dashboard", icon: Activity },
         { id: "fleet", title: "Bus Management", icon: Bus },
         { id: "driver", title: "Driver Management", icon: Users },
-        { id: "approvals", title: "Personnel Validation", icon: ShieldAlert },
         { id: "user", title: "User Management", icon: ShieldCheck },
         { id: "route", title: "Route Management", icon: RouteIcon },
         { id: "tracking", title: "Live Tracking", icon: MapPin },
@@ -150,17 +149,7 @@ function AdminDashboard() {
         switch (activeModule) {
             case "stats": return <StatisticsView stats={stats} drivers={[...drivers, ...users.filter(u => u.role === 'driver' && !drivers.some(d => d.id === u.id))]} />
             case "fleet": return <FleetManagement fleet={fleet} setShowAddBus={setShowAddBus} setEditingItem={setEditingItem} loadData={loadData} setConfirmDelete={setConfirmDelete} />
-            case "driver": return <DriverManagement drivers={drivers.filter(d => d.status !== 'Pending')} setShowAddDriver={setShowAddDriver} setEditingItem={setEditingItem} loadData={loadData} setConfirmDelete={setConfirmDelete} />
-            case "approvals": 
-                const pendingPool = [
-                    ...drivers.filter(d => (d.status?.toLowerCase() !== 'active')),
-                    ...users.filter(u => 
-                        (u.status?.toLowerCase() !== 'active') && 
-                        !drivers.some(d => d.id === u.id || d.email === u.email)
-                    )
-                ];
-                return <DriverApprovalManagement drivers={pendingPool} setEditingItem={setEditingItem} loadData={loadData} setConfirmDelete={setConfirmDelete} />
-            case "user": return <UserManagement users={users} setShowAddUser={setShowAddUser} setEditingItem={setEditingItem} loadData={loadData} setConfirmDelete={setConfirmDelete} />
+    case "driver": return <DriverManagement drivers={drivers} setShowAddDriver={setShowAddDriver} setEditingItem={setEditingItem} loadData={loadData} setConfirmDelete={setConfirmDelete} />
             case "route":
                 if (selectedRoute) {
                     return <RouteIntelligenceView
@@ -355,19 +344,7 @@ function AdminDashboard() {
                                 : (type === 'bus' ? api.addBus : type === 'driver' ? api.addDriver : type === 'route' ? api.addRoute : type === 'user' ? api.addUser : type === 'trip' ? api.addTrip : api.addSchedule);
 
                             setLoading(true);
-                            let action;
-                            if (editingItem?.isApproval) {
-                                if (type === 'driver') {
-                                    // Sequence: Update user status THEN create driver entry
-                                    action = api.editUser(editingItem.data.id, { status: 'Active' })
-                                        .then(() => api.addDriver(data));
-                                } else {
-                                    // Admin approval or others
-                                    action = api.editUser(editingItem.data.id, { status: 'Active' });
-                                }
-                            } else {
-                                action = editingItem ? apiCall(editingItem.data.id, data) : apiCall(data);
-                            }
+                           const action = editingItem ? apiCall(editingItem.data.id, data) : apiCall(data);
                             action.then(() => {
                                 setShowAddBus(false); setShowAddDriver(false); setShowAddRoute(false);
                                 setShowAddUser(false); setShowAddTrip(false); setShowAddSchedule(false);
@@ -649,8 +626,7 @@ function StatisticsView({ stats, drivers }) {
     const cards = [
         { label: "Total Buses", value: stats.totalBuses || 0, icon: Bus, trend: "+12%", color: "from-red-600 to-red-900" },
         { label: "Active Buses", value: stats.activeBuses || 0, icon: Activity, trend: "Stable", color: "from-blue-600 to-blue-900" },
-        { label: "Fleet Pilots", value: drivers.filter(d => d.status !== 'Pending').length, icon: Users, trend: "+3", color: "from-indigo-600 to-indigo-900" },
-        { label: "Pending Approvals", value: drivers.filter(d => d.status === 'Pending').length, icon: ShieldAlert, trend: "Required", color: "from-amber-600 to-amber-900" },
+        { label: "Fleet Pilots", value: drivers.length, icon: Users, trend: "+3", color: "from-indigo-600 to-indigo-900" },
     ]
 
     return (
@@ -1525,81 +1501,6 @@ function IssueManagement() {
     )
 }
 
-function DriverApprovalManagement({ drivers, setEditingItem, loadData, setConfirmDelete }) {
-    if (drivers.length === 0) {
-        return (
-            <div className="space-y-12">
-                <header>
-                    <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none text-gray-500">Personnel <span className="text-red-600">Validation</span></h2>
-                    <p className="text-gray-500 text-sm mt-3 font-black uppercase tracking-[0.3em] italic">Vetting incoming personnel registrations</p>
-                </header>
-                <div className="glass-card p-20 text-center space-y-8">
-                    <ShieldCheck size={64} className="text-gray-800 mx-auto" />
-                    <p className="text-gray-600 font-black uppercase tracking-[0.4em] italic text-xs">Awaiting synchronized registrations from public portal.</p>
-                </div>
-            </div>
-        )
-    }
-
-    return (
-        <div className="space-y-12">
-            <header>
-                    <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none text-gray-500">Personnel <span className="text-red-600">Validation</span></h2>
-                    <p className="text-gray-500 text-sm mt-3 font-black uppercase tracking-[0.3em] italic">Vetting incoming registrations</p>
-            </header>
-
-            <div className="grid grid-cols-1 gap-8">
-                {drivers.map(d => (
-                    <div key={d.id} className="glass-card p-10 flex gap-12 items-center justify-between border-amber-500/10">
-                        <div className="flex items-center gap-10 flex-1">
-                            <div className="w-24 h-24 rounded-[2rem] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-4xl shadow-2xl animate-pulse">
-                                📋
-                            </div>
-                            <div className="flex-1">
-                                <div className="flex items-center gap-6 mb-4">
-                                    <h3 className="text-2xl font-black italic tracking-tighter text-white uppercase">{d.name}</h3>
-                                </div>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-10">
-                                    <div className="space-y-1">
-                                        <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Personnel Reference</p>
-                                        <p className="text-xs font-black text-white italic tabular-nums">{d.id}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                       <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Digital Address</p>
-                                        <p className="text-xs font-black text-white italic tracking-tighter lowercase">{d.email}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                       <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Pre-auth Timestamp</p>
-                                        <p className="text-xs font-black text-white italic tabular-nums">{new Date().toLocaleDateString()}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-4">
-                            <button
-                               onClick={() => setEditingItem({ type: d.role || 'user', data: d, isApproval: true })}
-                                className="px-10 py-5 bg-red-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] italic hover:scale-105 active:scale-95 transition-all shadow-xl shadow-red-600/20"
-                            >
-                                Review & Authorize
-                            </button>
-                            <button
-                                onClick={() => setConfirmDelete({
-                                    type: 'Pending Driver Registration',
-                                    id: d.id,
-                                    name: d.name,
-                                    action: () => api.deleteUser(d.id)
-                                })}
-                                className="px-10 py-5 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] italic transition-all text-gray-500"
-                            >
-                                Reject Protocol
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
-}
 
 function AnalyticsReports() {
     return (
